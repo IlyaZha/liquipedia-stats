@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use \App\Models\Score;
 
 class CreateScoresTable extends Migration
 {
@@ -14,8 +15,21 @@ class CreateScoresTable extends Migration
     public function up()
     {
         Schema::create('scores', function (Blueprint $table) {
-            $table->bigIncrements('id');
+            $table->increments('id');
+            $table->integer('tournament_id')->unsigned();
+            $table->string('team_top');
+            $table->string('team_bot');
+            $table->tinyInteger('score_top');
+            $table->tinyInteger('score_bot');
+            $table->enum('current_bracket', [Score::BRACKET_TYPE_WINNERS, Score::BRACKET_TYPE_LOSERS]);
+            $table->enum('previous_bracket', [Score::BRACKET_TYPE_WINNERS, Score::BRACKET_TYPE_LOSERS]);
+            $table->string('round');
+
             $table->timestamps();
+        });
+        Schema::table('scores', function (Blueprint $table) {
+            $table->foreign('tournament_id')->references('id')->on('tournaments')->onUpdate('cascade');
+
         });
     }
 

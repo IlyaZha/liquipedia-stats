@@ -14,8 +14,14 @@ class CreateTournamentsTable extends Migration
     public function up()
     {
         Schema::create('tournaments', function (Blueprint $table) {
-            $table->bigIncrements('id');
+            $table->increments('id');
+            $table->string('name');
+            $table->string('url', 500);
             $table->timestamps();
+        });
+
+        Schema::table('tournaments', function (Blueprint $table) {
+            $table->unique('url');
         });
     }
 
