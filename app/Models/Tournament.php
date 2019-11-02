@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $url
  * @property Carbon $created_at
  * @property Carbon $updated_at
+ * @property string $team_winner
  * @property Score[] $scores
  */
 class Tournament extends Model
@@ -18,7 +19,7 @@ class Tournament extends Model
     /**
      * @var array
      */
-    protected $fillable = ['name', 'url', 'created_at', 'updated_at'];
+    protected $fillable = ['name', 'url', 'created_at', 'updated_at', 'team_winner'];
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany

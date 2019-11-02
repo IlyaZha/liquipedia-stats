@@ -41,6 +41,8 @@ $app->singleton(
     App\Exceptions\Handler::class
 );
 
+$app->singleton(\App\Interfaces\Client::class, \App\Http\HttpClient::class);
+
 /*
 |--------------------------------------------------------------------------
 | Return The Application
