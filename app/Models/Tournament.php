@@ -12,10 +12,15 @@ use Illuminate\Database\Eloquent\Model;
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property string $team_winner
+ * @property string $type
  * @property Score[] $scores
+ * @method where(string $string, string $tournamentType)
  */
 class Tournament extends Model
 {
+
+    public const DPC_TYPE_MINOR = 'Minor';
+    public const DPC_TYPE_MAJOR = 'Major';
     /**
      * @var array
      */

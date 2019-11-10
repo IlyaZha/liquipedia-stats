@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Exceptions\EmptyScoreException;
+use App\Exceptions\EmptyNameException;
 use App\Exceptions\WrongBracketException;
 use App\Interfaces\Client;
 use App\Models\Tournament;
 use App\Models\Score;
+use Illuminate\Support\Collection;
 
 /**
  * Class MainService
@@ -21,7 +24,6 @@ class TournamentService
 
     private const TEAM_TOP = 'top';
     private const TEAM_BOTTOM = 'bottom';
-
     /**
      * @var Client
      */
@@ -31,36 +33,60 @@ class TournamentService
      * @var string
      */
     private $url;
+    /**
+     * @var Tournament
+     */
+    private $tournament;
 
     /**
      * MainService constructor.
      * @param Client $client
+     * @param Tournament $tournament
      */
-    public function __construct(Client $client)
+    public function __construct(Client $client, Tournament $tournament)
     {
         $this->client = $client;
+        $this->tournament = $tournament;
     }
 
-    public function setData(string $url): void
+    public function getTournamentsByType(string $type): Collection
+    {
+        return $this->tournament
+            ->where('type', $type)
+            ->get();
+    }
+
+    /**
+     * @param string $url
+     * @param string $type
+     * @throws EmptyNameException
+     * @throws EmptyScoreException
+     * @throws WrongBracketException
+     */
+    public function setData(string $url, string $type): void
     {
         $this->url = $url;
         $content = $this->client->get($this->url);
-        $tournament = $this->createTournament($content);
+        $tournament = $this->createTournament($content, $type);
 
         $gamesGrouped = $this->getGamesGrouped($content);
-        $this->testGamesGroups($gamesGrouped);
+        $isValid = $this->isValidGamesGroups($gamesGrouped);
+        if (!$isValid) {
+            throw new WrongBracketException(sprintf('Got wrong brackets from %s', $this->url));
+        };
         $this->processRounds($gamesGrouped, $tournament);
 
         echo "Procesed $url<br>";
         sleep(1);
     }
 
-    private function createTournament(string $content): Tournament
+    private function createTournament(string $content, string $type): Tournament
     {
-        $tournament = new Tournament();
+        $tournament = $this->tournament->newInstance();
         $tournament->url = $this->url;
         $tournament->name = $this->getTournamentName($content);
         $tournament->team_winner = $this->getTeamWinner($content);
+        $tournament->type = $type;
         $tournament->save();
 
         return $tournament;
@@ -85,10 +111,10 @@ class TournamentService
         return $gamesGrouped;
     }
 
-    private function testGamesGroups(array $gamesGrouped): void
+    private function isValidGamesGroups(array $gamesGrouped): bool
     {
         if (in_array($this->url, self::SKIP_TESTING_BRACKETS_FOR_TOURNAMENTS) !== false) {
-            return;
+            return true;
         };
 
         $sizeOfPreviousGroup = null;
@@ -109,7 +135,7 @@ class TournamentService
                     continue;
                 };
                 if ($sizeOfPreviousGroup / 2 !== sizeof($games)) {
-                    throw new WrongBracketException(sprintf('Got wrong brackets from %s', $this->url));
+                    return false;
                 };
             } else {
                 if ($sizeOfPreviousGroup === sizeof($games) && !$repeatedSize) {
@@ -117,13 +143,21 @@ class TournamentService
                     continue;
                 }
                 if ($sizeOfPreviousGroup / 2 !== sizeof($games)) {
-                    throw new WrongBracketException(sprintf('Got wrong brackets from %s', $this->url));
+                    return false;
                 };
             }
             $sizeOfPreviousGroup = sizeof($games);
         }
+
+        return true;
     }
 
+    /**
+     * @param array $gamesGrouped
+     * @param Tournament $tournament
+     * @throws EmptyNameException
+     * @throws EmptyScoreException
+     */
     private function processRounds(array $gamesGrouped, Tournament $tournament): void
     {
         $sizeOfPreviousGroup = null;
@@ -145,6 +179,16 @@ class TournamentService
         }
     }
 
+    /**
+     * @param string $content
+     * @param string $currentBracket
+     * @param int $round
+     * @param Tournament $tournament
+     * @param int|null $sizeOfPreviousGroup
+     * @param int $sizeOfCurrentGroup
+     * @throws EmptyNameException
+     * @throws EmptyScoreException
+     */
     private function setScores(string $content, string $currentBracket, int $round, Tournament $tournament, ?int $sizeOfPreviousGroup, int $sizeOfCurrentGroup): void
     {
         $explodes = explode('bracket-cell', $content);
@@ -190,15 +234,33 @@ class TournamentService
         return $contents;
     }
 
+    /**
+     * @param string $content
+     * @return string
+     * @throws EmptyNameException
+     */
     private function getTeamName(string $content): string
     {
         preg_match('@team-template-text.+>(.+)</@msU', $content, $match);
+        if (!isset($match[1])) {
+            throw new EmptyNameException('Can not find name');
+        };
+
         return $match[1];
     }
 
+    /**
+     * @param string $content
+     * @return string
+     * @throws EmptyScoreException
+     */
     private function getTeamScore(string $content): string
     {
         preg_match('@bracket-score.+>(.*)<@msU', $content, $match);
+        if (empty($match[1])) {
+            throw new EmptyScoreException('Can not find score');
+        };
+
         return $match[1];
     }
 

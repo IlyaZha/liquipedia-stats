@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Interfaces\Client;
-use App\Models\Tournament;
-use App\Models\Score;
 
 /**
  * Class MainService
@@ -38,7 +36,7 @@ class MainService
     public function getTournamentsList(string $tournamentsUrl): array
     {
         $content = $this->client->get($tournamentsUrl);
-        preg_match_all('@Tournament .+>.+/span>.+href="(.*)"@msU', $content, $matches);
+        preg_match_all('@tournament-card-premier.+>.+/span>.+href="(.*)"@msU', $content, $matches);
 
         return array_map(function ($url) {
             return self::DOMAIN . $url;

@@ -10,8 +10,8 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $tournament_id
  * @property string $team_top
  * @property string $team_bot
- * @property boolean $score_top
- * @property boolean $score_bot
+ * @property int $score_top
+ * @property int $score_bot
  * @property string $current_bracket
  * @property string|null $previous_bracket_top
  * @property string|null $previous_bracket_bot
@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property Tournament $tournament
+ * @method whereIn(string $string, $ids)
  */
 class Score extends Model
 {
@@ -30,6 +31,7 @@ class Score extends Model
 
     public const BRACKET_TYPE_WINNERS = 'winners';
     public const BRACKET_TYPE_LOSERS = 'losers';
+    public const BRACKET_TYPE_GRAND_FINAL = 'grandfinal';
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo

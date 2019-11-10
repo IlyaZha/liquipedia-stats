@@ -11,4 +11,5 @@
 |
 */
 
-Route::get('/', 'MainController');
+Route::get('/', 'ParserController');
+Route::get('/stat/', 'StatisticsController');

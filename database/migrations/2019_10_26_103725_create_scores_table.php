@@ -23,7 +23,7 @@ class CreateScoresTable extends Migration
             $table->tinyInteger('score_bot');
             $table->enum('previous_bracket_top', [Score::BRACKET_TYPE_WINNERS, Score::BRACKET_TYPE_LOSERS])->nullable();
             $table->enum('previous_bracket_bot', [Score::BRACKET_TYPE_WINNERS, Score::BRACKET_TYPE_LOSERS])->nullable();
-            $table->enum('current_bracket', [Score::BRACKET_TYPE_WINNERS, Score::BRACKET_TYPE_LOSERS]);
+            $table->enum('current_bracket', [Score::BRACKET_TYPE_WINNERS, Score::BRACKET_TYPE_LOSERS, Score::BRACKET_TYPE_GRAND_FINAL]);
             $table->string('round');
 
             $table->timestamps();
