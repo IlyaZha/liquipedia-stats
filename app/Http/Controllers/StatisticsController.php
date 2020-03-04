@@ -20,12 +20,15 @@ class StatisticsController extends Controller
         StatisticsService $statisticsService
     )
     {
-        $statisticsService->setTournamentType(Tournament::DPC_TYPE_MINOR);
+        $statisticsService->setTournamentType(Tournament::DPC_TYPE_MAJOR);
 
+        $statisticsService->getTournamentsCount();
         $statisticsService->getWinnersWRStatisticFirstRound()->display();
         $statisticsService->getWinnersWRStatisticNotFirstRound()->display();
         $statisticsService->getLosersWRStatisticFirstRound()->display();
         $statisticsService->getGrandfinalStatistic()->display();
         $statisticsService->getFallenFromWinnersStatistic()->display();
+        $statisticsService->getGrandfinalScoreStatistic();
+//        $statisticsService->getTest()->display();
     }
 }

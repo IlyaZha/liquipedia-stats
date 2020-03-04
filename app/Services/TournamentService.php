@@ -86,7 +86,7 @@ class TournamentService
         $tournament->url = $this->url;
         $tournament->name = $this->getTournamentName($content);
         $tournament->team_winner = $this->getTeamWinner($content);
-        $tournament->type = $type;
+        $tournament->type = $this->getType($content, $type);
         $tournament->save();
 
         return $tournament;
@@ -217,6 +217,22 @@ class TournamentService
     {
         preg_match('@background-color-first-place.+team-template-text.+<a.+>(.*)<@msU', $content, $match);
         return $match[1];
+    }
+
+    private function getType(string $content, string $type): string
+    {
+        $date = $this->getTournamentDate($content);
+        if ($type === Tournament::DPC_TYPE_MINOR && $date < '2018 Oct') {
+            return Tournament::DPC_TYPE_OLD_MINOR;
+        };
+        return $type;
+    }
+
+    private function getTournamentDate(string $content): string
+    {
+        preg_match('@Dates:.+<div .+>(.+)</div>@msU', $content, $match);
+        [$monthDate, $year] = explode(',', $match[1]);
+        return "$year $monthDate";
     }
 
     private function getBracketColumns(string $content): array

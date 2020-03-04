@@ -20,6 +20,7 @@ class Tournament extends Model
 {
 
     public const DPC_TYPE_MINOR = 'Minor';
+    public const DPC_TYPE_OLD_MINOR = 'Old Minor';
     public const DPC_TYPE_MAJOR = 'Major';
     /**
      * @var array

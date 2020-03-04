@@ -38,6 +38,6 @@ class Score extends Model
      */
     public function tournament()
     {
-        return $this->belongsTo('App\Tournament');
+        return $this->belongsTo(Tournament::class);
     }
 }

@@ -122,6 +122,45 @@ class StatisticsService
         return $this->getStatisticBetweenBotAndTop($scores, 'Винрейт верхней команды, упавшей из виннер брекета');
     }
 
+    public function getGrandfinalScoreStatistic()
+    {
+        $scores = $this->getScoreBuilder()
+            ->where('current_bracket', Score::BRACKET_TYPE_GRAND_FINAL)
+            ->where(function(Builder $query) {
+                $score = 2;
+                $query->where('score_top', $score)
+                    ->orWhere('score_bot', $score);
+            })
+            ->get();
+
+        foreach ($scores as $score) {
+            print_r($score->tournament->name);
+        }
+//        print_r($scores->toArray());
+    }
+
+    public function getTest(): Statistic
+    {
+        $scores = $this->getScoreBuilder()
+            ->where(function($q) {
+                $q->where('score_top', 3)
+                ->orWhere('score_bot', 3);
+            })
+            ->get();
+        print_r($scores);die;
+
+        return $this->getStatisticBetweenBotAndTop($scores, 'Винрейт верхней команды, упавшей из виннер брекета');
+    }
+
+    public function getTournamentsCount()
+    {
+        $count = $this->getScoreBuilder()
+            ->distinct('tournament_id')
+            ->count('tournament_id');
+
+        echo "Статистика по кол-ву турниров: $count\n";
+    }
+
     private function getStatisticBetweenBotAndTop(Collection $scores, string $description)
     {
         $statistic = new Statistic();
