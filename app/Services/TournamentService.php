@@ -211,7 +211,7 @@ class TournamentService
     {
         preg_match('@Dates:.+<div .+>(.+)</div>@msU', $content, $match);
         [$monthDate, $year] = explode(',', $match[1]);
-        return "$year $monthDate";
+        return trim("$year $monthDate");
     }
 
     private function getBracketColumns(string $content): array
