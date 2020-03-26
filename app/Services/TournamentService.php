@@ -49,11 +49,9 @@ class TournamentService
         $this->tournament = $tournament;
     }
 
-    public function getTournamentsByType(string $type): Collection
+    public function getTournaments(): Collection
     {
-        return $this->tournament
-            ->where('type', $type)
-            ->get();
+        return $this->tournament->get();
     }
 
     /**
@@ -163,14 +161,19 @@ class TournamentService
         $sizeOfPreviousGroup = null;
         $bracket = Score::BRACKET_TYPE_WINNERS;
         $round = 0;
-        foreach ($gamesGrouped as $group) {
+        for ($i = 0, $gamesGroupedTotal = sizeof($gamesGrouped); $i < $gamesGroupedTotal; $i++) {
+            $group = $gamesGrouped[$i];
             ++$round;
             if ($sizeOfPreviousGroup === 1) {
                 if ($bracket === Score::BRACKET_TYPE_WINNERS) {
                     $round = 1;
                 };
                 $bracket = Score::BRACKET_TYPE_LOSERS;
+            } elseif ($i === ($gamesGroupedTotal - 1)) {
+                $bracket = Score::BRACKET_TYPE_GRAND_FINAL;
+                $round = '-';
             }
+
             foreach ($group as $serie) {
                 $this->setScores($serie, $bracket, $round, $tournament, $sizeOfPreviousGroup, sizeof($group));
             }
@@ -223,6 +226,7 @@ class TournamentService
     {
         $date = $this->getTournamentDate($content);
         if ($type === Tournament::DPC_TYPE_MINOR && $date < '2018 Oct') {
+            throw new \Exception('Old minor??? Проверить это место');
             return Tournament::DPC_TYPE_OLD_MINOR;
         };
         return $type;
@@ -273,7 +277,7 @@ class TournamentService
     private function getTeamScore(string $content): string
     {
         preg_match('@bracket-score.+>(.*)<@msU', $content, $match);
-        if (empty($match[1])) {
+        if (!isset($match[1])) {
             throw new EmptyScoreException('Can not find score');
         };
 

@@ -33,6 +33,8 @@ class Score extends Model
     public const BRACKET_TYPE_LOSERS = 'losers';
     public const BRACKET_TYPE_GRAND_FINAL = 'grandfinal';
 
+    public const BRACKET_TYPES = [self::BRACKET_TYPE_WINNERS, self::BRACKET_TYPE_LOSERS, self::BRACKET_TYPE_GRAND_FINAL];
+
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */

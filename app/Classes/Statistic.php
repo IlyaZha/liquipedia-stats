@@ -8,13 +8,20 @@ namespace App\Classes;
  * @property int total
  * @property int count
  * @property string description
- * @property float winrate
+ * @property float $percent
  */
 class Statistic
 {
-    public function display()
+    public function __get($name)
     {
-        $this->winrate = round($this->count / $this->total * 100, 2);
-        print_r($this);
+        if ($name !== 'percent') {
+            return $this->$name;
+        };
+
+        if (!$this->total) {
+            return 0;
+        }
+
+        return round($this->count / $this->total * 100, 2);
     }
 }

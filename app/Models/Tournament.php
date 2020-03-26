@@ -32,6 +32,6 @@ class Tournament extends Model
      */
     public function scores()
     {
-        return $this->hasMany('App\Score');
+        return $this->hasMany('App\Models\Score');
     }
 }

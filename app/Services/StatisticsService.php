@@ -59,29 +59,25 @@ class StatisticsService
 
     }
 
+    public function getTournamentType(): string
+    {
+        return $this->tournamentType;
+    }
+
     public function setTournamentType(string $type): void
     {
         $this->tournamentType = $type;
         $this->scoreBuilder = $this->createQueryBuilder();
     }
 
-    public function getWinnersWRStatistic(): Statistic
+    public function getStatisticByBracketAndRound(string $bracket, int $round): Statistic
     {
         $scores = $this->getScoreBuilder()
-            ->where('current_bracket', Score::BRACKET_TYPE_WINNERS)
+            ->where('current_bracket', $bracket)
+            ->where('round', $round)
             ->get();
 
-        return $this->getStatisticBetweenBotAndTop($scores, 'Винрейт верхней команды в виннерах');
-    }
-
-    public function getWinnersWRStatisticFirstRound(): Statistic
-    {
-        $scores = $this->getScoreBuilder()
-            ->where('current_bracket', Score::BRACKET_TYPE_WINNERS)
-            ->where('round', 1)
-            ->get();
-
-        return $this->getStatisticBetweenBotAndTop($scores, 'Винрейт верхней команды в виннерах первого раунда');
+        return $this->getStatisticBetweenBotAndTop($scores, '');
     }
 
     public function getWinnersWRStatisticNotFirstRound(): Statistic
@@ -92,25 +88,6 @@ class StatisticsService
             ->get();
 
         return $this->getStatisticBetweenBotAndTop($scores, 'Винрейт верхней команды в виннерах НЕ первого раунда');
-    }
-
-    public function getLosersWRStatisticFirstRound(): Statistic
-    {
-        $scores = $this->getScoreBuilder()
-            ->where('current_bracket', Score::BRACKET_TYPE_LOSERS)
-            ->where('round', 1)
-            ->get();
-
-        return $this->getStatisticBetweenBotAndTop($scores, 'Винрейт верхней команды в лузерах первого раунда');
-    }
-
-    public function getGrandfinalStatistic(): Statistic
-    {
-        $scores = $this->getScoreBuilder()
-            ->where('current_bracket', Score::BRACKET_TYPE_GRAND_FINAL)
-            ->get();
-
-        return $this->getStatisticBetweenBotAndTop($scores, 'Винрейт верхней команды в грандфинале');
     }
 
     public function getFallenFromWinnersStatistic(): Statistic
@@ -132,44 +109,129 @@ class StatisticsService
                     ->orWhere('score_bot', $score);
             })
             ->get();
-
-        foreach ($scores as $score) {
-            print_r($score->tournament->name);
-        }
-//        print_r($scores->toArray());
     }
 
-    public function getTest(): Statistic
-    {
-        $scores = $this->getScoreBuilder()
-            ->where(function($q) {
-                $q->where('score_top', 3)
-                ->orWhere('score_bot', 3);
-            })
-            ->get();
-        print_r($scores);die;
+//    public function getTest(): Statistic
+//    {
+//        $scores = $this->getScoreBuilder()
+//            ->where(function(Builder $q) {
+//                $q->where('score_top', 3)
+//                ->orWhere('score_bot', 3);
+//            })
+//            ->get();
+//        print_r($scores);die;
+//
+//        return $this->getStatisticBetweenBotAndTop($scores, 'Винрейт верхней команды, упавшей из виннер брекета');
+//    }
 
-        return $this->getStatisticBetweenBotAndTop($scores, 'Винрейт верхней команды, упавшей из виннер брекета');
-    }
-
-    public function getTournamentsCount()
+    public function getTournamentsCount(): int
     {
-        $count = $this->getScoreBuilder()
+        return $this->getScoreBuilder()
             ->distinct('tournament_id')
             ->count('tournament_id');
-
-        echo "Статистика по кол-ву турниров: $count\n";
     }
 
-    private function getStatisticBetweenBotAndTop(Collection $scores, string $description)
+    public function getMatchesCountStatisticBo3(string $bracket, int $round): Statistic
+    {
+        $scores = $this->getScoreBuilder()
+            ->where('current_bracket', $bracket)
+            ->where('round', $round)
+            ->get();
+
+        return $this->getStatisticForMatchResultBo3($scores);
+    }
+
+    /**
+     * @param string $bracket
+     * @param int $round
+     * @return Statistic[]
+     */
+    public function getMatchesCountStatisticBo5Array(string $bracket, int $round): array
+    {
+        $scores = $this->getScoreBuilder()
+            ->where('current_bracket', $bracket)
+            ->where('round', $round)
+            ->get();
+
+        return $this->getStatisticForMatchResultBo5Array($scores);
+    }
+
+    private function getStatisticBetweenBotAndTop(Collection $scores, ?string $description)
     {
         $statistic = new Statistic();
-        $statistic->description = $description;
+        if ($description) {
+            $statistic->description = $description;
+        }
         $statistic->total = sizeof($scores);
         $topWonScores = $scores->filter(function (Score $score) {
             return $score->score_top > $score->score_bot;
         });
         $statistic->count = sizeof($topWonScores);
+
+        return $statistic;
+    }
+
+    private function getStatisticForMatchResultBo3(Collection $scores, ?string $description = ''): Statistic //todo
+    {
+        $statistic = new Statistic();
+//        if ($description) {
+//            $statistic->description = $description;
+//        }
+        $statistic->description = 'Кол-во матчей всухую (2:0) среди всех игр';
+
+        $zeroWinScores = $scores->filter(function (Score $score) {
+            return ($score->score_bot === 2 && $score->score_top === 0) || ($score->score_bot === 0 && $score->score_top === 2);
+        });
+
+        $oneWinScores = $scores->filter(function (Score $score) {
+            return ($score->score_bot === 2 && $score->score_top === 1) || ($score->score_bot === 1 && $score->score_top === 2);
+        });
+
+        $statistic->total = sizeof($oneWinScores) + sizeof($zeroWinScores);
+        $statistic->count = sizeof($zeroWinScores);
+
+        return $statistic;
+    }
+
+    /**
+     * @param Collection $scores
+     * @param string|null $description
+     * @return Statistic[]
+     */
+    private function getStatisticForMatchResultBo5Array(Collection $scores, ?string $description = ''): array //todo
+    {
+        $statistics = [];
+        for ($i = 0; $i < 4; $i ++) {
+            $statistics[] = $this->getStatisticForMatchResultBo5($scores, 3, $i);
+        }
+        return $statistics;
+    }
+
+    /**
+     * @param Collection $scores
+     * @param int $score1
+     * @param int $score2
+     * @param string|null $description
+     * @return Statistic
+     */
+    private function getStatisticForMatchResultBo5(Collection $scores, int $score1, int $score2, ?string $description = ''): Statistic
+    {
+        $statistic = new Statistic();
+//        if ($description) {
+//            $statistic->description = $description;
+//        }
+        $statistic->description = "Кол-во встреч $score1:$score2";
+
+        $allScoresCount = sizeof($scores->filter(function (Score $score) {
+            return $score->score_bot === 3 || $score->score_top === 3;
+        }));
+
+        $zeroWinScores = $scores->filter(function (Score $score) use ($score1, $score2) {
+            return ($score->score_bot === $score1 && $score->score_top === $score2) || ($score->score_bot === $score2 && $score->score_top === $score1);
+        });
+
+        $statistic->total = $allScoresCount;
+        $statistic->count = sizeof($zeroWinScores);
 
         return $statistic;
     }

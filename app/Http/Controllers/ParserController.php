@@ -54,7 +54,7 @@ class ParserController extends Controller
 
     private function parseByTournamentType(string $tournamentType, string $tournamentUrl): void
     {
-        $existed = $this->tournamentService->getTournamentsByType($tournamentType);
+        $existed = $this->tournamentService->getTournaments();
 
         $tournamentsList = $this->mainService->getTournamentsList($tournamentUrl);
         $urlsNotExisted = array_filter($tournamentsList, function ($url) use ($existed) {
