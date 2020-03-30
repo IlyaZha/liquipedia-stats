@@ -42,4 +42,12 @@ class Score extends Model
     {
         return $this->belongsTo(Tournament::class);
     }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function matches()
+    {
+        return $this->hasMany(Match::class);
+    }
 }

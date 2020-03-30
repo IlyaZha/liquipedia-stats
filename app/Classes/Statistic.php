@@ -12,16 +12,19 @@ namespace App\Classes;
  */
 class Statistic
 {
+    public $count = 0;
+    public $total = 0;
+
     public function __get($name)
     {
-        if ($name !== 'percent') {
-            return $this->$name;
-        };
+        if ($name === 'percent') {
+            if (!$this->total) {
+                return 0;
+            }
 
-        if (!$this->total) {
-            return 0;
+            return round($this->count / $this->total * 100, 2);
         }
 
-        return round($this->count / $this->total * 100, 2);
+        return $this->$name;
     }
 }

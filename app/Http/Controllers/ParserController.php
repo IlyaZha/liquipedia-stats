@@ -13,6 +13,7 @@ class ParserController extends Controller
     private const TOURNAMENTS_URLS = [
         Tournament::DPC_TYPE_MAJOR => 'https://liquipedia.net/dota2/Dota_Major_Championships',
         Tournament::DPC_TYPE_MINOR => 'https://liquipedia.net/dota2/Dota_Minor_Championships',
+        Tournament::TYPE_INTERNATIONAL => 'https://liquipedia.net/dota2/The_International',
     ];
 
     private const TOURNAMENTS_WITH_WRONG_BRACKETS = [ //todo add to table
